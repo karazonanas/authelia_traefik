@@ -1,0 +1,75 @@
+---
+###############################################################
+#                   Authelia configuration                    #
+###############################################################
+
+# This secret can also be set using the env variables AUTHELIA_JWT_SECRET_FILE
+# generate with 'docker run authelia/authelia:latest authelia crypto rand --length 128 --charset alphanumeric'
+default_redirection_url: https://auth.example.com    # add your domain of autehlia here
+
+log:
+  level: debug
+
+totp:
+  issuer: auth.example.com ### your plain domain
+
+# duo_api:
+#  hostname: api-123456789.example.com
+#  integration_key: ABCDEF
+#  # This secret can also be set using the env variables AUTHELIA_DUO_API_SECRET_KEY_FILE
+
+authentication_backend:
+  file:
+    path: /config/users_database.yml
+    watch: true
+
+access_control:
+  default_policy: deny
+  rules:
+    - domain: traefik.example.com
+      policy: two_factor
+
+session:
+  name: authelia_session
+  domain: example.com
+  expiration: 1h
+  inactivity: 5m
+  remember_me_duration:  1M
+
+regulation:
+  max_retries: 3
+  find_time: 120
+  ban_time: 300
+
+storage:
+  local:
+    path: /config/db.sqlite3
+
+notifier:
+  smtp:
+    username: <username>
+    password: '<password>'
+    host: <smtp.example.com>
+    port: 465
+    sender: auth@example.com
+  # For testing purpose, notifications can be sent in a file.
+  # filesystem:
+  #   filename: /config/notification.txt
+
+identity_providers:
+  oidc:
+    clients:
+      - id: portainer
+        description: Portainer
+        # generate with 'docker run authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986'
+#        secret: '$pdfa5asdf00sasdfaasdfddsfadasdfasdJP3Ml6A'.
+        public: false
+        authorization_policy: two_factor
+        redirect_uris:
+          - https://portainer.example.com
+        scopes:
+          - openid
+          - profile
+          - groups
+          - email
+        userinfo_signing_algorithm: none

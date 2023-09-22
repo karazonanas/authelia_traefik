@@ -1,0 +1,6 @@
+secrets/*
+!secrets/.gitkeep
+.env
+# ignore all files in config/ which are not .example files
+config/*
+!config/*.example
